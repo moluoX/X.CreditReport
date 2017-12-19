@@ -12,5 +12,7 @@
         <Button x:Name="btnAnalyze" Content="解析" HorizontalAlignment="Left" Margin="90,38,0,0" VerticalAlignment="Top" Width="75" Click="btnAnalyze_Click"/>
         <TextBox x:Name="txtPath" HorizontalAlignment="Left" Height="23" Margin="90,10,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="692"/>
         <TextBlock HorizontalAlignment="Left" Margin="10,15,0,0" TextWrapping="NoWrap" Text="pdf文件" VerticalAlignment="Top" Width="75" TextAlignment="Center" />
+        <Button x:Name="btnSave" Content="保存Json" HorizontalAlignment="Left" Margin="170,38,0,0" VerticalAlignment="Top" Width="75" Click="btnSave_Click"/>
+        <Button x:Name="btnAnalyzeAll" Content="解析全部" HorizontalAlignment="Left" Margin="250,38,0,0" VerticalAlignment="Top" Width="75" Click="btnAnalyzeAll_Click"/>
     </Grid>
 </Window>

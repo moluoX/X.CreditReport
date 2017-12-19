@@ -25,77 +25,98 @@ namespace X.CreditReport.Analysis
             text = Pretreatment(text);
 
             //定位，截取
-            int headStart, headEnd;
-            regex = new Regex(@"报告编号");
-            match = regex.Match(text);
-            headStart = match.Index;
-
-            regex = new Regex(@"配偶信息");
-            match = regex.Match(text);
-            headEnd = match.Index;
-
-            int livingStart, livingEnd;
-            regex = new Regex(@"\n+\s*居住信息\s*\n+");
-            match = regex.Match(text);
-            livingStart = match.Index + match.Length;
-
-            regex = new Regex(@"\n+\s*职业信息\s*\n+");
-            match = regex.Match(text);
-            livingEnd = match.Index;
-
-            int jobStart, jobEnd;
-            regex = new Regex(@"\n+\s*职业信息\s*\n+");
-            match = regex.Match(text);
-            jobStart = match.Index + match.Length;
-
-            regex = new Regex(@"\n+[\s|二]*信息概要\s*\n+");
-            match = regex.Match(text);
-            jobEnd = match.Index;
-
-            int debtStatisticStart, debtStatisticEnd;
-            regex = new Regex(@".*授信及负债信息概要");
-            match = regex.Match(text);
-            debtStatisticStart = match.Index;
-
-            regex = new Regex(@".*信贷交易信息明细");
-            match = regex.Match(text);
-            debtStatisticEnd = match.Index;
-
-            int daikuanStart, daikuanEnd;
-            regex = new Regex(@"信贷交易信息明细\s贷款");
-            match = regex.Match(text);
-            daikuanStart = match.Index + match.Length;
-
-            regex = new Regex(@"\n\s*贷记卡\s*\n");
-            match = regex.Match(text);
-            daikuanEnd = match.Index;
-
-            int daijikaStart, daijikaEnd;
-            regex = new Regex(@"\n\s*贷记卡\s*\n");
-            match = regex.Match(text);
-            daijikaStart = match.Index + match.Length;
-
-            regex = new Regex(@"\n.*公共信息明细.*\n");
-            match = regex.Match(text);
-            daijikaEnd = match.Index;
-
-            int recordStart, recordEnd;
-            regex = new Regex(@".*机构查询记录明细.*");
-            match = regex.Match(text);
-            recordStart = match.Index + match.Length;
-
-            regex = new Regex(@".*报告说明.*");
-            match = regex.Match(text);
-            recordEnd = match.Index;
-
             var all = new CREDIT_ALL();
-            all.Personal = AnalysisPersonal(text.Substring(headStart, headEnd - headStart));
-            all.Livings = AnalysisLiving(text.Substring(livingStart, livingEnd - livingStart));
-            all.Jobs = AnalysisJob(text.Substring(jobStart, jobEnd - jobStart));
-            all.Debt = AnalysisDebtStatistic(text.Substring(debtStatisticStart, debtStatisticEnd - debtStatisticStart));
-            all.Daikuans = AnalysisDaikuan(text.Substring(daikuanStart, daikuanEnd - daikuanStart));
-            all.Daijikas = AnalysisDaijika(text.Substring(daijikaStart, daijikaEnd - daijikaStart));
-            all.Records = AnalysisRecordDetails(text.Substring(recordStart, recordEnd - recordStart));
+            {
+                int start, end;
+                regex = new Regex(@"报告编号");
+                match = regex.Match(text);
+                start = match.Index;
+
+                regex = new Regex(@"配偶信息");
+                match = regex.Match(text);
+                end = match.Index;
+
+                if (start > 0 && end > 0 && start < end)
+                    all.Personal = AnalysisPersonal(text.Substring(start, end - start));
+            }
+            {
+                int start, end;
+                regex = new Regex(@"\n+\s*居住信息\s*\n+");
+                match = regex.Match(text);
+                start = match.Index + match.Length;
+
+                regex = new Regex(@"\n+\s*职业信息\s*\n+");
+                match = regex.Match(text);
+                end = match.Index;
+
+                if (start > 0 && end > 0 && start < end)
+                    all.Livings = AnalysisLiving(text.Substring(start, end - start));
+            }
+            {
+                int start, end;
+                regex = new Regex(@"\n+\s*职业信息\s*\n+");
+                match = regex.Match(text);
+                start = match.Index + match.Length;
+
+                regex = new Regex(@"\n+[\s|二]*信息概要\s*\n+");
+                match = regex.Match(text);
+                end = match.Index;
+
+                if (start > 0 && end > 0 && start < end)
+                    all.Jobs = AnalysisJob(text.Substring(start, end - start));
+            }
+            {
+                int start, end;
+                regex = new Regex(@".*授信及负债信息概要");
+                match = regex.Match(text);
+                start = match.Index;
+
+                regex = new Regex(@".*信贷交易信息明细");
+                match = regex.Match(text);
+                end = match.Index;
+
+                if (start > 0 && end > 0 && start < end)
+                    all.Debt = AnalysisDebtStatistic(text.Substring(start, end - start));
+            }
+            {
+                int start, end;
+                regex = new Regex(@"信贷交易信息明细\s贷款");
+                match = regex.Match(text);
+                start = match.Index + match.Length;
+
+                regex = new Regex(@"\n\s*贷记卡\s*\n");
+                match = regex.Match(text);
+                end = match.Index;
+
+                if (start > 0 && end > 0 && start < end)
+                    all.Daikuans = AnalysisDaikuan(text.Substring(start, end - start));
+            }
+            {
+                int start, end;
+                regex = new Regex(@"\n\s*贷记卡\s*\n");
+                match = regex.Match(text);
+                start = match.Index + match.Length;
+
+                regex = new Regex(@"\n.*公共信息明细.*\n");
+                match = regex.Match(text);
+                end = match.Index;
+
+                if (start > 0 && end > 0 && start < end)
+                    all.Daijikas = AnalysisDaijika(text.Substring(start, end - start));
+            }
+            {
+                int start, end;
+                regex = new Regex(@".*机构查询记录明细.*");
+                match = regex.Match(text);
+                start = match.Index + match.Length;
+
+                regex = new Regex(@".*报告说明.*");
+                match = regex.Match(text);
+                end = match.Index;
+
+                if (start > 0 && end > 0 && start < end)
+                    all.Records = AnalysisRecordDetails(text.Substring(start, end - start));
+            }
             return all;
         }
 
@@ -119,7 +140,7 @@ namespace X.CreditReport.Analysis
             match = regex.Match(textAll, start1);
             end1 = match.Index;
 
-            if (start1 >= 0 && end1 > 0)
+            if (start1 >= 0 && end1 > 0 && start1 < end1)
             {
                 var text = textAll.Substring(start1, end1 - start1).Replace("\n", " ").Trim();
                 //被查询者姓名
@@ -147,7 +168,7 @@ namespace X.CreditReport.Analysis
             match = regex.Match(textAll, start2);
             end2 = match.Index;
 
-            if (start2 > 0 && end2 > 0)
+            if (start2 > 0 && end2 > 0 && start2 < end2)
             {
                 var text = textAll.Substring(start2, end2 - start2).Replace("\n", " ").Trim();
                 //性别
@@ -189,7 +210,7 @@ namespace X.CreditReport.Analysis
             match = regex.Match(textAll, start3);
             end3 = match.Index;
 
-            if (start3 > 0 && end3 > 0)
+            if (start3 > 0 && end3 > 0 && start3 < end3)
             {
                 var text = textAll.Substring(start3, end3 - start3).Replace("\n", " ").Trim();
                 //单位电话
@@ -213,7 +234,7 @@ namespace X.CreditReport.Analysis
             match = regex.Match(textAll, start4);
             end4 = match.Index;
 
-            if (start4 > 0 && end4 > 0)
+            if (start4 > 0 && end4 > 0 && start4 < end4)
             {
                 var text = textAll.Substring(start4, end4 - start4).Replace("\n", " ").Trim();
                 //通讯地址
@@ -240,6 +261,8 @@ namespace X.CreditReport.Analysis
             match = regex.Match(textAll);
             end = match.Index;
 
+            if (start >= end)
+                return list;
             var text = "\n" + textAll.Substring(start, end - start);
 
             //分割每行，取每行数据
@@ -280,6 +303,8 @@ namespace X.CreditReport.Analysis
             match = regex.Match(textAll);
             end1 = match.Index;
 
+            if (start1 >= end1)
+                return list;
             var text1 = "\n" + textAll.Substring(start1, end1 - start1);
 
             //分割每行，取每行数据
@@ -355,6 +380,8 @@ namespace X.CreditReport.Analysis
             match = regex.Match(textAll);
             end2 = match.Index;
 
+            if (start2 >= end2)
+                return list;
             var text2 = "\n" + textAll.Substring(start2, end2 - start2);
 
             //分割每行，取每行数据
@@ -395,7 +422,7 @@ namespace X.CreditReport.Analysis
 
         private static CREDIT_DEBTSTATISTIC AnalysisDebtStatistic(string textAll)
         {
-            var list = new List<CREDIT_DEBTSTATISTIC>();
+            var m = new CREDIT_DEBTSTATISTIC();
 
             #region 未结清贷款信息汇总
             int start1, end1;
@@ -408,17 +435,19 @@ namespace X.CreditReport.Analysis
             match = regex.Match(textAll);
             end1 = match.Index;
 
-            var text1 = textAll.Substring(start1, end1 - start1).Trim();
+            if (start1 < end1)
+            {
+                var text1 = textAll.Substring(start1, end1 - start1).Trim();
 
-            //取数据
-            var m = new CREDIT_DEBTSTATISTIC();
-            var text1Arr = text1.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
-            if (text1Arr.Length > 3)
-                m.LOANTOTAL = text1Arr[3].XToDecimalOrNull();
-            if (text1Arr.Length > 4)
-                m.LOANLEAVE = text1Arr[4].XToDecimalOrNull();
-            if (text1Arr.Length > 5)
-                m.LOAN6MONTHAVG = text1Arr[5].XToDecimalOrNull();
+                //取数据
+                var text1Arr = text1.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+                if (text1Arr.Length > 3)
+                    m.LOANTOTAL = text1Arr[3].XToDecimalOrNull();
+                if (text1Arr.Length > 4)
+                    m.LOANLEAVE = text1Arr[4].XToDecimalOrNull();
+                if (text1Arr.Length > 5)
+                    m.LOAN6MONTHAVG = text1Arr[5].XToDecimalOrNull();
+            }
             #endregion
 
             #region 未销户贷记卡信息汇总
@@ -571,7 +600,7 @@ namespace X.CreditReport.Analysis
                     regex = new Regex(@"\n未还本金");
                     match = regex.Match(item);
                     int end = match.Index;
-                    if (end > start)
+                    if (start < end)
                     {
                         //找到数据行，找包含日期(如:2017.12.12)的一行
                         regex = new Regex(@".*\d{4}\.\d{2}.\d{2}.*");
@@ -619,22 +648,25 @@ namespace X.CreditReport.Analysis
 
                     //找到数据行，找只包含数字或空格的一行
                     regex = new Regex(@"\n\s*\d[\d\s]*\n");
-                    match = regex.Match(item, start, end - start);
-                    var text = match.Value.Trim();
+                    if (start < end)
+                    {
+                        match = regex.Match(item, start, end - start);
+                        var text = match.Value.Trim();
 
-                    var textArr = text.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
-                    if (textArr.Length > 0)
-                        m.OVERDUETERMS = textArr[0].XToIntOrNull();
-                    if (textArr.Length > 1)
-                        m.OVERDUEMONEY = textArr[1].XToDecimalOrNull();
-                    if (textArr.Length > 2)
-                        m.OVERDUE31 = textArr[2].XToDecimalOrNull();
-                    if (textArr.Length > 3)
-                        m.OVERDUE61 = textArr[3].XToDecimalOrNull();
-                    if (textArr.Length > 4)
-                        m.OVERDUE91 = textArr[4].XToDecimalOrNull();
-                    if (textArr.Length > 5)
-                        m.OVERDUE181 = textArr[5].XToDecimalOrNull();
+                        var textArr = text.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+                        if (textArr.Length > 0)
+                            m.OVERDUETERMS = textArr[0].XToIntOrNull();
+                        if (textArr.Length > 1)
+                            m.OVERDUEMONEY = textArr[1].XToDecimalOrNull();
+                        if (textArr.Length > 2)
+                            m.OVERDUE31 = textArr[2].XToDecimalOrNull();
+                        if (textArr.Length > 3)
+                            m.OVERDUE61 = textArr[3].XToDecimalOrNull();
+                        if (textArr.Length > 4)
+                            m.OVERDUE91 = textArr[4].XToDecimalOrNull();
+                        if (textArr.Length > 5)
+                            m.OVERDUE181 = textArr[5].XToDecimalOrNull();
+                    }
                 }
                 #endregion
 
@@ -795,19 +827,23 @@ namespace X.CreditReport.Analysis
                     regex = new Regex(@"账单日");
                     match = regex.Match(item);
                     int end = match.Index;
-                    var text = item.Substring(start, end - start).Replace("\n", "").Trim();
 
-                    var textArr = text.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
-                    if (textArr.Length > 0)
-                        m.ACCOUNTSTATE = textArr[0];
-                    if (textArr.Length > 1)
-                        m.USEDMONEY = textArr[1].XToDecimalOrNull();
-                    if (textArr.Length > 2)
-                        m.AVGMONEY = textArr[2].XToDecimalOrNull();
-                    if (textArr.Length > 3)
-                        m.MAXMONEY = textArr[3].XToDecimalOrNull();
-                    if (textArr.Length > 4)
-                        m.BACKMONEY = textArr[4].XToDecimalOrNull();
+                    if (start < end)
+                    {
+                        var text = item.Substring(start, end - start).Replace("\n", "").Trim();
+
+                        var textArr = text.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+                        if (textArr.Length > 0)
+                            m.ACCOUNTSTATE = textArr[0];
+                        if (textArr.Length > 1)
+                            m.USEDMONEY = textArr[1].XToDecimalOrNull();
+                        if (textArr.Length > 2)
+                            m.AVGMONEY = textArr[2].XToDecimalOrNull();
+                        if (textArr.Length > 3)
+                            m.MAXMONEY = textArr[3].XToDecimalOrNull();
+                        if (textArr.Length > 4)
+                            m.BACKMONEY = textArr[4].XToDecimalOrNull();
+                    }
                 }
                 #endregion
 
@@ -828,19 +864,22 @@ namespace X.CreditReport.Analysis
                 {
                     int start = match.Index + match.Length;
                     int end = backIndex > 0 ? backIndex : (overdueIndex > 0 ? overdueIndex : item.Length);
-                    var text = item.Substring(start, end - start).Replace("\n", "").Trim();
+                    if (start < end)
+                    {
+                        var text = item.Substring(start, end - start).Replace("\n", "").Trim();
 
-                    var textArr = text.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
-                    if (textArr.Length > 0)
-                        m.BILLDATE = textArr[0].XToDateTimeOrNull();
-                    if (textArr.Length > 1)
-                        m.FACTMONEY = textArr[1].XToDecimalOrNull();
-                    if (textArr.Length > 2)
-                        m.LASTBACKDATE = textArr[2].XToDateTimeOrNull();
-                    if (textArr.Length > 3)
-                        m.OVERDUETIMES = textArr[3].XToDecimalOrNull();
-                    if (textArr.Length > 4)
-                        m.OVERDUEMONEY = textArr[4].XToDecimalOrNull();
+                        var textArr = text.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+                        if (textArr.Length > 0)
+                            m.BILLDATE = textArr[0].XToDateTimeOrNull();
+                        if (textArr.Length > 1)
+                            m.FACTMONEY = textArr[1].XToDecimalOrNull();
+                        if (textArr.Length > 2)
+                            m.LASTBACKDATE = textArr[2].XToDateTimeOrNull();
+                        if (textArr.Length > 3)
+                            m.OVERDUETIMES = textArr[3].XToDecimalOrNull();
+                        if (textArr.Length > 4)
+                            m.OVERDUEMONEY = textArr[4].XToDecimalOrNull();
+                    }
                 }
                 #endregion
 
