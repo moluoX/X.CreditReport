@@ -140,6 +140,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CreditReportAnalyzer.cs" />
+    <Compile Include="Model\CREDIT_ALL.cs" />
     <Compile Include="Model\CREDIT_DAIJIKA.cs" />
     <Compile Include="Model\CREDIT_DAIJIKA_ALL.cs" />
     <Compile Include="Model\CREDIT_DAIJIKA_BACK.cs" />

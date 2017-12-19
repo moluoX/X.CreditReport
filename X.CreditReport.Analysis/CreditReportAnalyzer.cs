@@ -15,7 +15,7 @@ namespace X.CreditReport.Analysis
     {
         #region 解析征信报告
 
-        public static void Analyze(string path)
+        public static CREDIT_ALL Analyze(string path)
         {
             Regex regex;
             Match match;
@@ -88,13 +88,15 @@ namespace X.CreditReport.Analysis
             match = regex.Match(text);
             recordEnd = match.Index;
 
-            var personal = AnalysisPersonal(text.Substring(headStart, headEnd - headStart));
-            var living = AnalysisLiving(text.Substring(livingStart, livingEnd - livingStart));
-            var job = AnalysisJob(text.Substring(jobStart, jobEnd - jobStart));
-            var debt = AnalysisDebtStatistic(text.Substring(debtStatisticStart, debtStatisticEnd - debtStatisticStart));
-            var daikuans = AnalysisDaikuan(text.Substring(daikuanStart, daikuanEnd - daikuanStart));
-            var daijikas = AnalysisDaijika(text.Substring(daijikaStart, daijikaEnd - daijikaStart));
-            var records = AnalysisRecordDetails(text.Substring(recordStart, recordEnd - recordStart));
+            var all = new CREDIT_ALL();
+            all.Personal = AnalysisPersonal(text.Substring(headStart, headEnd - headStart));
+            all.Livings = AnalysisLiving(text.Substring(livingStart, livingEnd - livingStart));
+            all.Jobs = AnalysisJob(text.Substring(jobStart, jobEnd - jobStart));
+            all.Debt = AnalysisDebtStatistic(text.Substring(debtStatisticStart, debtStatisticEnd - debtStatisticStart));
+            all.Daikuans = AnalysisDaikuan(text.Substring(daikuanStart, daikuanEnd - daikuanStart));
+            all.Daijikas = AnalysisDaijika(text.Substring(daijikaStart, daijikaEnd - daijikaStart));
+            all.Records = AnalysisRecordDetails(text.Substring(recordStart, recordEnd - recordStart));
+            return all;
         }
 
         private static CREDIT_PERSONALINFO AnalysisPersonal(string textAll)
