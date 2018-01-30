@@ -44,7 +44,7 @@ namespace X.CreditReport.Test
                     return;
                 }
                 txtContent.Text = "";
-                var m = CreditReportAnalyzer.Analyze(txtPath.Text);
+                var m = CreditReportSimpleAnalyzer.Analyze(txtPath.Text);
                 txtContent.Text = SerializeToFormatJson(m);
             }
             catch (Exception ex)

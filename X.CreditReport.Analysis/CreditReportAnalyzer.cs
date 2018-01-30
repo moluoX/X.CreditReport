@@ -1033,7 +1033,7 @@ namespace X.CreditReport.Analysis
 
         private static string Pretreatment(string text)
         {
-            var r = RhPDFTextParser.Default.ParseText(text);
+            var r = PDFTextParser.Default.ParseText(text);
             return r;
         }
 

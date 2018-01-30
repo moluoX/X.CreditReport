@@ -14,19 +14,19 @@ namespace X.CreditReport.Analysis
     ///       检测到有新词更新，会自动重新加载词库，无需重启系统
     ///       
     /// 调用方式：
-    /// string result = RhPDFTextParser.Default.ParseText(text);
+    /// string result = PDFTextParser.Default.ParseText(text);
     /// </summary>
-    internal class RhPDFTextParser
+    internal class PDFTextParser
     {
-        private RhPDFTextParser() { }
-        private static RhPDFTextParser _Default;
-        public static RhPDFTextParser Default
+        private PDFTextParser() { }
+        private static PDFTextParser _Default;
+        public static PDFTextParser Default
         {
             get
             {
                 if (_Default == null)
                 {
-                    _Default = new RhPDFTextParser();
+                    _Default = new PDFTextParser();
                     _Default.LoadWordDic();
                 }
                 return _Default;
