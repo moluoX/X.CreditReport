@@ -36,7 +36,7 @@ namespace X.CreditReport.Analysis
                 match = regex.Match(text);
                 end = match.Index;
 
-                if (start > 0 && end > 0 && start < end)
+                if (end > 0 && start < end)
                     all = AnalysisDebt(text.Substring(start, end - start));
             }
             {
@@ -45,10 +45,23 @@ namespace X.CreditReport.Analysis
                 match = regex.Match(text);
                 start = match.Index + match.Length;
 
-                end = text.Length;
+                regex = new Regex(@".*本人查询记录明细.*");
+                match = regex.Match(text);
+                end = match.Index;
 
                 if (start > 0 && end > 0 && start < end)
                     all.Records = AnalysisRecordDetails(text.Substring(start, end - start));
+            }
+            {
+                int start, end;
+                regex = new Regex(@".*本人查询记录明细.*");
+                match = regex.Match(text);
+                start = match.Index + match.Length;
+
+                end = text.Length;
+
+                if (start > 0 && end > 0 && start < end)
+                    all.RecordsSelf = AnalysisRecordDetailsSelf(text.Substring(start, end - start));
             }
             return all;
         }
@@ -75,74 +88,79 @@ namespace X.CreditReport.Analysis
         private static IList<CREDIT_RECORD_DETAILS> AnalysisRecordDetails(string textAll)
         {
             var list = new List<CREDIT_RECORD_DETAILS>();
-            int start1, end1;
-            int start2, end2;
-            int count1;
-
-            #region 机构查询记录明细
-            start1 = 0;
-
-            var regex = new Regex(@"本人查询记录明细");
-            var match = regex.Match(textAll);
-            end1 = start2 = match.Index;
-
-            var text1 = "\n" + textAll.Substring(start1, end1 - start1);
 
             //分割每行，取每行数据
-            var rows1 = SplitRowSerial(text1);
-            count1 = rows1.Count;
-            for (int i = 0; i < rows1.Count; i++)
+            var rows = SplitRowSerial(textAll, lineBreakReplace: "");
+            for (int i = 0; i < rows.Count; i++)
             {
-                var row = rows1[i];
+                var row = rows[i];
                 var m = new CREDIT_RECORD_DETAILS();
                 list.Add(m);
 
                 //编号
                 m.SN = i + 1;
                 //查询日期
-                regex = new Regex(@"\d{4}\.\d{2}\.\d{2}");
-                match = regex.Match(row);
+                var regex = new Regex(@"\d{4}年\d{1,2}月\d{1,2}日");
+                var match = regex.Match(row);
                 if (match.Success)
                 {
                     m.QUERYDATE = match.Value.XToDateTimeOrNull();
                     row = regex.Replace(row, "").Trim();
                 }
-                //查询原因
-                m.REMARK = GetUntilSpaceFromRow(ref row, PositionInRow.End);
                 //查询操作员
-                m.OPERATOR = row.Replace(" ", "");
+                m.OPERATOR = GetUntilSpaceFromRow(ref row, PositionInRow.Start);
+                //查询原因
+                m.REMARK = row.Replace(" ", "");
+
+                //处理查询操作员与查询原因之间无空格的情况
+                if (string.IsNullOrWhiteSpace(m.REMARK))
+                {
+                    regex = new Regex(QUERY_REASON_PATTERN);
+                    match = regex.Match(m.OPERATOR);
+                    if (match.Success)
+                    {
+                        m.REMARK = match.Value;
+                        m.OPERATOR = regex.Replace(m.OPERATOR, "");
+                    }
+                }
             }
-            #endregion
 
-            #region 本人查询记录明细
-            end2 = textAll.Length;
+            return list;
+        }
 
-            var text2 = "\n" + textAll.Substring(start2, end2 - start2);
+        private static IList<CREDIT_RECORD_DETAILS> AnalysisRecordDetailsSelf(string textAll)
+        {
+            var list = new List<CREDIT_RECORD_DETAILS>();
 
             //分割每行，取每行数据
-            var rows2 = SplitRowSerial(text2);
-            for (int i = 0; i < rows2.Count; i++)
+            var rows = SplitRowSerial(textAll, lineBreakReplace: "");
+            for (int i = 0; i < rows.Count; i++)
             {
-                var row = rows2[i];
+                var row = rows[i];
                 var m = new CREDIT_RECORD_DETAILS();
                 list.Add(m);
 
                 //编号
-                m.SN = count1 + i + 1;
+                m.SN = i + 1;
                 //查询日期
-                regex = new Regex(@"\d{4}\.\d{2}\.\d{2}");
-                match = regex.Match(row);
+                var regex = new Regex(@"\d{4}年\d{1,2}月\d{1,2}日");
+                var match = regex.Match(row);
                 if (match.Success)
                 {
                     m.QUERYDATE = match.Value.XToDateTimeOrNull();
                     row = regex.Replace(row, "").Trim();
                 }
-                //查询原因
-                m.REMARK = GetUntilSpaceFromRow(ref row, PositionInRow.End);
                 //查询操作员
-                m.OPERATOR = row.Replace(" ", "");
+                regex = new Regex(@"本人查询.*");
+                match = regex.Match(row);
+                if (match.Success)
+                {
+                    m.OPERATOR = match.Value.Replace(" ", "");
+                    row = regex.Replace(row, "").Trim();
+                }
+                //查询原因
+                m.REMARK = row.Replace(" ", "");
             }
-            #endregion
 
             return list;
         }
@@ -172,15 +190,13 @@ namespace X.CreditReport.Analysis
             regex = new Regex(@"\d+\.\s*\n");
             text = regex.Replace(text, "");
 
-            //去说明
-            regex = new Regex(@"^说\s*明", RegexOptions.Multiline);
-            var match = regex.Match(text);
-            var start = match.Index;
-            regex = new Regex(@"请致电全国客户服务热线400-810-8866.*");
-            match = regex.Match(text);
-            var end = match.Index + match.Length;
-            if (start > 0 && end > 0 && start < end)
-                text = text.Substring(0, start) + text.Substring(end);
+            //去
+            var patterns = GetConfigTrimPatterns();
+            foreach (var pattern in patterns)
+            {
+                regex = new Regex(pattern);
+                text = regex.Replace(text, "");
+            }
 
             return text;
         }
@@ -190,9 +206,10 @@ namespace X.CreditReport.Analysis
         /// </summary>
         /// <param name="text"></param>
         /// <param name="numberSplitor">序号分割符</param>
-        /// <param name="mergeLine">是否合并为一行(用空格替代换行)</param>
+        /// <param name="mergeLine">是否合并为一行(用lineBreakReplace替代换行符)</param>
+        /// <param name="lineBreakReplace">替代换行符</param>
         /// <returns></returns>
-        private static List<string> SplitRowSerial(string text, string numberSplitor = @"\s+", bool mergeLine = true)
+        private static List<string> SplitRowSerial(string text, string numberSplitor = @"\s+", bool mergeLine = true, string lineBreakReplace = " ")
         {
             //分割每行
             var splitors = new List<Tuple<int, int>>();
@@ -215,27 +232,10 @@ namespace X.CreditReport.Analysis
                 var endThis = splitors.Count > i + 1 ? splitors[i + 1].Item1 : text.Length;
                 var textRow = text.Substring(startThis, endThis - startThis);
                 if (mergeLine)
-                    textRow = textRow.Replace("\n", " ");
+                    textRow = textRow.Replace("\r\n", lineBreakReplace).Replace("\n", lineBreakReplace);
                 rows.Add(textRow.Trim());
             }
             return rows;
-        }
-
-        /// <summary>
-        /// 从行文本中截取信息更新日期，格式 2014. 02. 27
-        /// </summary>
-        /// <returns></returns>
-        private static DateTime? GetUpdateDateFromRow(ref string row)
-        {
-            var regex = new Regex(@"\d{4}\.\s*\d{2}\.\s*\d{2}");
-            var match = regex.Match(row);
-            DateTime? r = null;
-            if (match.Success)
-            {
-                r = match.Value.XToDateTimeOrNull();
-                row = regex.Replace(row, "").Trim();
-            }
-            return r;
         }
 
         /// <summary>
@@ -301,57 +301,30 @@ namespace X.CreditReport.Analysis
             return r;
         }
 
-        /// <summary>
-        /// 从行文本头或尾开始截取年
-        /// </summary>
-        /// <param name="row"></param>
-        /// <param name="position"></param>
-        /// <param name="checkIngnore">是否先从行文本中截取—</param>
-        /// <returns></returns>
-        private static string GetYearFromRow(ref string row, PositionInRow position, bool checkIngnore = true)
-        {
-            if (checkIngnore && GetIgnoreSymbolFromRow(ref row, position))
-                return IGNORE_SYMBOL;
-
-            Regex regex;
-            switch (position)
-            {
-                case PositionInRow.Start:
-                    regex = new Regex(@"^[12]\d{3}");
-                    break;
-                case PositionInRow.End:
-                    regex = new Regex(@"[12]\d{3}$");
-                    break;
-                default:
-                    throw new NotImplementedException("GetYearFromRow不支持此position");
-            }
-            var match = regex.Match(row);
-            string r = "";
-            if (match.Success)
-            {
-                r = match.Value.Trim();
-                row = regex.Replace(row, "").Trim();
-            }
-            return r;
-        }
-
         #endregion
 
         #region 配置
 
-        private const string JOB_COMPANYNAME_PATTERN = @"^.+公司\s+
-^.+部\s+
-^.+店\s+";
+        private const string TRIM_PATTERN = @".*说\s*明.*\r?\n
+.*本报告中的信息是依据.*\r?\n
+.*整合的全过程中保持客观.*\r?\n
+.*影响您信用评价的主要信息.*\r?\n
+.*可访问征信中心门户网站.*\r?\n
+.*可联系数据提供单位.*\r?\n
+.*请妥善保管.*\r?\n
+.*请致电全国客户服务热线.*\r?\n";
         /// <summary>
         /// 配置：工作单位正则表达式
         /// </summary>
         /// <returns></returns>
-        private static string[] GetConfigJobCompanyPatterns()
+        private static string[] GetConfigTrimPatterns()
         {
-            return JOB_COMPANYNAME_PATTERN.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            return TRIM_PATTERN.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
         }
 
         private const string IGNORE_SYMBOL = "—";
+
+        private const string QUERY_REASON_PATTERN = @"保前审查|保后管理|贷款审批|贷后管理|担保资格审查|信用卡审批";
 
         #endregion
     }

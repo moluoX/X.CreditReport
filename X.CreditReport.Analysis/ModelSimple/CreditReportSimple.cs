@@ -12,5 +12,6 @@ namespace X.CreditReport.Analysis.ModelSimple
         public bool? IsEmpty { get; set; }
         public bool? IsBreakingBad { get; set; }
         public IList<CREDIT_RECORD_DETAILS> Records { get; set; }
+        public IList<CREDIT_RECORD_DETAILS> RecordsSelf { get; set; }
     }
 }
